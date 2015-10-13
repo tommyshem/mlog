@@ -1,7 +1,7 @@
 A simple logging module for go, with a rotating file feature and console logging.
 
 ## Installation
-go get github.com/jbrodriguez/mlog
+go get github.com/TranDuyThanh/mlog
 
 ## Usage
 Sample usage
@@ -11,7 +11,7 @@ Write to stdout/stderr and create a rotating logfile
 package main
 
 import (
-	"github.com/jbrodriguez/mlog"
+	"github.com/TranDuyThanh/mlog"
 )
 
 func main() {
