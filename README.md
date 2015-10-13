@@ -29,7 +29,7 @@ Write to stdout/stderr only
 package main
 
 import (
-	"github.com/jbrodriguez/mlog"
+	"github.com/TranDuyThanh/mlog"
 )
 
 func main() {
