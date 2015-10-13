@@ -45,6 +45,6 @@ func main() {
 ## Output
 
 ```
-I: 2015/05/15 07:09:45 main.go:10: Hello World !
-W: 2015/05/15 07:09:45 main.go:13: Lorem ipsum
+I: 2015/10/13 09:14:40.212225 std_mlog.go:10: Hello World !
+W: 2015/10/13 09:14:40.212614 std_mlog.go:13: Lorem ipsum
 ```
