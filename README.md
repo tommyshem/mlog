@@ -1,46 +1,67 @@
 A simple logging module for go, with a rotating file feature and console logging.
 
-## Installation
-go get github.com/TranDuyThanh/mlog
+### Installation
+	
+	go get github.com/TranDuyThanh/mlog
 
-## Usage
-Sample usage
+### Level logging
+
+	mlog.Trace("Hello World !")
+	mlog.Info("Hello World !")
+	mlog.Warning("Hello World !")
+	mlog.Error("Hello World !")
+	mlog.Fatal("Hello World !")
+
+You can set the logging level on a Logger, then it will only log entries with that severity or anything above it:
+	
+	mlog.Start(mlog.LevelTrace,   "app.log")
+	mlog.Start(mlog.LevelInfo,    "app.log")
+	mlog.Start(mlog.LevelWarning, "app.log")
+	mlog.Start(mlog.LevelError,   "app.log")
+	
+### Rotation
+
+Log rotation is provided with `mlog`. Default max size of log file is: `1GB`
+
+Note:
+	
+	Log rotation should be done by an external program (like logrotate(8)) that can compress and delete old log entries
+
+### Example
 
 Write to stdout/stderr and create a rotating logfile
-```
-package main
 
-import (
-	"github.com/TranDuyThanh/mlog"
-)
+	package main
 
-func main() {
-	mlog.Start(mlog.LevelInfo, "app.log")
+	import (
+		"github.com/TranDuyThanh/mlog"
+	)
 
-	mlog.Info("Hello World !")
+	func main() {
+		mlog.Start(mlog.LevelInfo, "app.log")
 
-	ipsum := "ipsum"
-	mlog.Warning("Lorem %s", ipsum)
-}
-```
+		mlog.Info("Hello World !")
+
+		ipsum := "ipsum"
+		mlog.Warning("Lorem %s", ipsum)
+	}
 
 Write to stdout/stderr only
-```
-package main
 
-import (
-	"github.com/TranDuyThanh/mlog"
-)
+	package main
 
-func main() {
-	mlog.Start(mlog.LevelInfo, "")
+	import (
+		"github.com/TranDuyThanh/mlog"
+	)
 
-	mlog.Info("Hello World !")
+	func main() {
+		mlog.Start(mlog.LevelInfo, "")
 
-	ipsum := "ipsum"
-	mlog.Warning("Lorem %s", ipsum)
-}
-```
+		mlog.Info("Hello World !")
+
+		ipsum := "ipsum"
+		mlog.Warning("Lorem %s", ipsum)
+	}
 
 ## Output
 
