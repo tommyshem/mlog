@@ -192,11 +192,11 @@ func doLogging(logLevel int32, fileName string) {
     }
 
     logger = mlog{
-        Trace:   log.New(traceHandle, "T: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-        Info:    log.New(infoHandle,  "I: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-        Warning: log.New(warnHandle,  "W: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-        Error:   log.New(errorHandle, "E: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-        Fatal:   log.New(errorHandle, "F: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+        Trace:   log.New(traceHandle, "\033[34mT: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+        Info:    log.New(infoHandle,  "\033[32mI: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+        Warning: log.New(warnHandle,  "\033[38mW: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+        Error:   log.New(errorHandle, "\033[33mE: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+        Fatal:   log.New(errorHandle, "\033[31mF: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
         LogFile: fileHandle,
     }
 
