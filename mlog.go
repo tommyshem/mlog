@@ -214,7 +214,7 @@ func Trace(format string, a ...interface{}) {
 
 // Info writes to the Info destination
 func Info(format string, a ...interface{}) {
-	logger.Info.Output(2, "\033[92m"+fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Info.Output(2, "\033[32m"+fmt.Sprintf(format, a...)+"\033[0m")
 }
 
 //** WARNING
