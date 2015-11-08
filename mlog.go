@@ -192,11 +192,11 @@ func doLogging(logLevel int32, fileName string) {
 	}
 
 	logger = mlog{
-		Trace:   log.New(traceHandle, "\033[34mT: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-		Info:    log.New(infoHandle, "\033[32mI: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-		Warning: log.New(warnHandle, "\033[0mW: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-		Error:   log.New(errorHandle, "\033[33mE: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
-		Fatal:   log.New(errorHandle, "\033[31mF: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+		Trace:   log.New(traceHandle, "T: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+		Info:    log.New(infoHandle, "I: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+		Warning: log.New(warnHandle, "W: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+		Error:   log.New(errorHandle, "E: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
+		Fatal:   log.New(errorHandle, "F: ", log.Ldate|log.Lmicroseconds|log.Lshortfile),
 		LogFile: fileHandle,
 	}
 
@@ -207,33 +207,33 @@ func doLogging(logLevel int32, fileName string) {
 
 // Trace writes to the Trace destination
 func Trace(format string, a ...interface{}) {
-	logger.Trace.Output(2, fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Trace.Output(2, "\033[34m"+fmt.Sprintf(format, a...)+"\033[0m")
 }
 
 //** INFO
 
 // Info writes to the Info destination
 func Info(format string, a ...interface{}) {
-	logger.Info.Output(2, fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Info.Output(2, "\033[32m"+fmt.Sprintf(format, a...)+"\033[0m")
 }
 
 //** WARNING
 
 // Warning writes to the Warning destination
 func Warning(format string, a ...interface{}) {
-	logger.Warning.Output(2, fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Warning.Output(2, "\033[95m"+fmt.Sprintf(format, a...)+"\033[0m")
 }
 
 //** ERROR
 
 // Error writes to the Error destination and accepts an err
 func Error(err error) {
-	logger.Error.Output(2, fmt.Sprintf("%s\n", err)+"\033[0m")
+	logger.Error.Output(2, "\033[93m"+fmt.Sprintf("%s\n", err)+"\033[0m")
 }
 
 // Fatalf writes to the Fatal destination and exits with an error code
 func Fatalf(format string, a ...interface{}) {
-	logger.Fatal.Output(2, fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Fatal.Output(2, "\033[91m"+fmt.Sprintf(format, a...)+"\033[0m")
 	if logger.LogFile != nil {
 		logger.LogFile.fd.Sync()
 	}
