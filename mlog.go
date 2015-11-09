@@ -221,19 +221,19 @@ func Info(format string, a ...interface{}) {
 
 // Warning writes to the Warning destination
 func Warning(format string, a ...interface{}) {
-	logger.Warning.Output(2, "\033[95m"+fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Warning.Output(2, "\033[35m"+fmt.Sprintf(format, a...)+"\033[0m")
 }
 
 //** ERROR
 
 // Error writes to the Error destination and accepts an err
 func Error(err error) {
-	logger.Error.Output(2, "\033[93m"+fmt.Sprintf("%s\n", err)+"\033[0m")
+	logger.Error.Output(2, "\033[33m"+fmt.Sprintf("%s\n", err)+"\033[0m")
 }
 
 // Fatalf writes to the Fatal destination and exits with an error code
 func Fatalf(format string, a ...interface{}) {
-	logger.Fatal.Output(2, "\033[91m"+fmt.Sprintf(format, a...)+"\033[0m")
+	logger.Fatal.Output(2, "\033[31m"+fmt.Sprintf(format, a...)+"\033[0m")
 	if logger.LogFile != nil {
 		logger.LogFile.fd.Sync()
 	}
