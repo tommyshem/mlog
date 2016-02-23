@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"mlog"
+	"github.com/TranDuyThanh/mlog"
 )
 
 func main() {
@@ -12,4 +12,6 @@ func main() {
 	fmt.Println("Welcome to SSS")
 	mlog.Info("Hello world")
 	mlog.Warning("Hello world")
+	mlog.Append("test.log", "%s - %s", "Hello", "World")
+	mlog.Appendln("test.log", "%s - %s", "Hello", "World 2")
 }
