@@ -239,3 +239,23 @@ func Fatalf(format string, a ...interface{}) {
 	}
 	os.Exit(255)
 }
+
+func Append(filename string, format string, a ...interface{}) {
+	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	defer logInstance.Close()
+	_, err := logInstance.WriteString(fmt.Sprintf(format, a...))
+	check(err)
+}
+
+func Appendln(filename string, format string, a ...interface{}) {
+	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	defer logInstance.Close()
+	_, err := logInstance.WriteString(fmt.Sprintf(format+"\n", a...))
+	check(err)
+}
+
+func check(err error) {
+	if err != nil {
+		log.Fatal("mlog: cannot append string to file: ", err)
+	}
+}
