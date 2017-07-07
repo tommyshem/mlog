@@ -1,9 +1,21 @@
-A simple logging module for go, with a rotating file feature and console logging.
+### This is a fork from https://github.com/TranDuyThanh/mlog and changed to my needs.
+
+A simple logging module for go, with a rotating file feature and optional console logging.
 
 ### Installation
 	
-	go get github.com/TranDuyThanh/mlog
+	go get github.com/tommyshem/mlog
 
+### Setup logging
+You can set the logging level on a Logger, then it will only log entries with that severity or anything above it:
+```go	
+	mlog.Start(Logging Level, Filename for the log)
+	Examples:
+	mlog.Start(mlog.LevelTrace,   "app.log")
+	mlog.Start(mlog.LevelInfo,    "app.log")
+	mlog.Start(mlog.LevelWarning, "app.log")
+	mlog.Start(mlog.LevelError,   "app.log")
+```
 ### Level logging
 
 	mlog.Trace("Hello World !")
@@ -12,12 +24,7 @@ A simple logging module for go, with a rotating file feature and console logging
 	mlog.Error("Hello World !")
 	mlog.Fatal("Hello World !")
 
-You can set the logging level on a Logger, then it will only log entries with that severity or anything above it:
-	
-	mlog.Start(mlog.LevelTrace,   "app.log")
-	mlog.Start(mlog.LevelInfo,    "app.log")
-	mlog.Start(mlog.LevelWarning, "app.log")
-	mlog.Start(mlog.LevelError,   "app.log")
+
 	
 ### Rotation
 
