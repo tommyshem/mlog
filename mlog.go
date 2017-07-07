@@ -16,21 +16,27 @@ import (
 type LogLevel int32
 
 const (
-	// LevelTrace logs everything
+	// LevelTrace logs everything.
 	LevelTrace LogLevel = (1 << iota)
 
-	// LevelInfo logs Info, Warnings and Errors
+	// LevelInfo logs Info, Warnings and Errors.
 	LevelInfo
 
-	// LevelWarn logs Warning and Errors
+	// LevelWarn logs Warning and Errors.
 	LevelWarn
 
-	// LevelError logs just Errors
+	// LevelError logs just Errors.
 	LevelError
+
+	// LevelOnlyFile logs only to file.
+	LevelOnlyFile
 )
 
-const MaxBytes int = 10 * 1024 * 1024
-const BackupCount int = 10
+// defaultMaxBytes default log file max size limit set at 10 Mega bytes.
+const defaultMaxBytes int = 10 * 1024 * 1024
+
+// defaultBackupCount default log file max backup's made.
+const defaultBackupCount int = 5
 
 type mlog struct {
 	LogLevel int32
@@ -41,19 +47,20 @@ type mlog struct {
 	Error   *log.Logger
 	Fatal   *log.Logger
 
-	LogFile *RotatingFileHandler
+	LogFile *rotatingFileHandler
 }
 
+// Logger instance of the mlog.
 var Logger mlog
 
 // DefaultFlags used by created loggers
 var DefaultFlags = log.Ldate | log.Ltime | log.Lshortfile
 
-//RotatingFileHandler writes log a file, if file size exceeds maxBytes,
+//rotatingFileHandler writes log to file, if file size exceeds maxBytes,
 //it will backup current file and open a new one.
 //
-//max backup file number is set by backupCount, it will delete oldest if backups too many.
-type RotatingFileHandler struct {
+//backupCount -> max number of backup file's created, it will delete the oldest if backup made is greater than backupCount.
+type rotatingFileHandler struct {
 	fd *os.File
 
 	fileName    string
@@ -61,12 +68,13 @@ type RotatingFileHandler struct {
 	backupCount int
 }
 
-// NewRotatingFileHandler creates dirs and opens the logfile
-func NewRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*RotatingFileHandler, error) {
+// newRotatingFileHandler creates directorys if needed and creates a log file if needed
+// else opens the logfile if there is one already.
+func newRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*rotatingFileHandler, error) {
 	dir := path.Dir(fileName)
 	os.Mkdir(dir, 0777)
 
-	h := new(RotatingFileHandler)
+	h := new(rotatingFileHandler)
 
 	if maxBytes <= 0 {
 		return nil, fmt.Errorf("invalid max bytes")
@@ -85,20 +93,20 @@ func NewRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*Ro
 	return h, nil
 }
 
-func (h *RotatingFileHandler) Write(p []byte) (n int, err error) {
+func (h *rotatingFileHandler) Write(p []byte) (n int, err error) {
 	h.doRollover()
 	return h.fd.Write(p)
 }
 
 // Close simply closes the File
-func (h *RotatingFileHandler) Close() error {
+func (h *rotatingFileHandler) Close() error {
 	if h.fd != nil {
 		return h.fd.Close()
 	}
 	return nil
 }
 
-func (h *RotatingFileHandler) doRollover() {
+func (h *rotatingFileHandler) doRollover() {
 	f, err := h.fd.Stat()
 	if err != nil {
 		return
@@ -131,9 +139,10 @@ func (h *RotatingFileHandler) doRollover() {
 
 // Start starts the logging
 func Start(level LogLevel, path string) {
-	doLogging(level, path, MaxBytes, BackupCount)
+	doLogging(level, path, defaultMaxBytes, defaultBackupCount)
 }
 
+// StartEx starts the logging with maxBytes and backupCount changed from the default.
 func StartEx(level LogLevel, path string, maxBytes, backupCount int) {
 	doLogging(level, path, maxBytes, backupCount)
 }
@@ -145,6 +154,20 @@ func Stop() error {
 	}
 
 	return nil
+}
+
+func Append(filename string, format string, a ...interface{}) {
+	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	defer logInstance.Close()
+	_, err := logInstance.WriteString(fmt.Sprintf(format, a...))
+	check(err)
+}
+
+func Appendln(filename string, format string, a ...interface{}) {
+	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	defer logInstance.Close()
+	_, err := logInstance.WriteString(fmt.Sprintf(format+"\n", a...))
+	check(err)
 }
 
 //Sync commits the current contents of the file to stable storage.
@@ -163,9 +186,11 @@ func doLogging(logLevel LogLevel, fileName string, maxBytes, backupCount int) {
 	errorHandle := ioutil.Discard
 	fatalHandle := ioutil.Discard
 
-	var fileHandle *RotatingFileHandler
+	var fileHandle *rotatingFileHandler
 
 	switch logLevel {
+	case LevelOnlyFile:
+		break
 	case LevelTrace:
 		traceHandle = os.Stdout
 		fallthrough
@@ -182,9 +207,9 @@ func doLogging(logLevel LogLevel, fileName string, maxBytes, backupCount int) {
 
 	if fileName != "" {
 		var err error
-		fileHandle, err = NewRotatingFileHandler(fileName, maxBytes, backupCount)
+		fileHandle, err = newRotatingFileHandler(fileName, maxBytes, backupCount)
 		if err != nil {
-			log.Fatal("mlog: unable to create RotatingFileHandler: ", err)
+			log.Fatal("mlog: unable to create rotatingFileHandler: ", err)
 		}
 
 		if traceHandle == os.Stdout {
@@ -255,28 +280,13 @@ func IfError(err error) {
 	}
 }
 
-//** FATAL
+//** Fatal
 
-// Fatal writes to the Fatal destination and exits with an error 255 code
-// Fatalf writes to the Fatal destination and exits with an error code
+// Fatalf writes to the Fatal destination and exits with an error code 255
 func Fatalf(format string, a ...interface{}) {
 	Logger.Fatal.Output(2, "\033[31m"+fmt.Sprintf(format, a...)+"\033[0m")
 	Sync()
 	os.Exit(255)
-}
-
-func Append(filename string, format string, a ...interface{}) {
-	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	defer logInstance.Close()
-	_, err := logInstance.WriteString(fmt.Sprintf(format, a...))
-	check(err)
-}
-
-func Appendln(filename string, format string, a ...interface{}) {
-	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	defer logInstance.Close()
-	_, err := logInstance.WriteString(fmt.Sprintf(format+"\n", a...))
-	check(err)
 }
 
 func check(err error) {

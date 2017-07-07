@@ -8,24 +8,23 @@ A simple logging module for go, with a rotating file feature and optional consol
 
 ### Setup logging
 You can set the logging level on a Logger, then it will only log entries with that severity or anything above it:
-```go	
-	mlog.Start(Logging Level, Filename for the log)
-	Examples:
-	mlog.Start(mlog.LevelTrace,   "app.log")
-	mlog.Start(mlog.LevelInfo,    "app.log")
-	mlog.Start(mlog.LevelWarning, "app.log")
-	mlog.Start(mlog.LevelError,   "app.log")
+	
+```go
+	mlog.Start(mlog.LevelTrace,   "app.log")  // Logs Trace, Warning, Info and Error - (All logs) 
+	mlog.Start(mlog.LevelInfo,    "app.log")  // Logs Info, Warning and Error Only
+	mlog.Start(mlog.LevelWarning, "app.log")  // Logs Warning and Error Only
+	mlog.Start(mlog.LevelError,   "app.log")  // Logs Error only
 ```
 ### Level logging
 
+```go
 	mlog.Trace("Hello World !")
 	mlog.Info("Hello World !")
 	mlog.Warning("Hello World !")
 	mlog.Error("Hello World !")
 	mlog.Fatal("Hello World !")
+```
 
-
-	
 ### Rotation
 
 Log rotation is provided with `mlog`. Default max size of log file is: `1GB`
@@ -38,8 +37,7 @@ Note:
 
 Write to stdout/stderr and create a rotating logfile
 
-
-```
+```go
 package main
 
 import (
@@ -47,7 +45,7 @@ import (
 )
 
 func main() {
-	mlog.Start(mlog.LevelInfo, "app.log")
+	mlog.Start(mlog.LevelInfo, "/tmp/app.log")
 
 	mlog.Info("Hello World !")
 
@@ -59,7 +57,7 @@ func main() {
 
 Write to stdout/stderr only
 
-```
+```go
 package main
 
 import (
@@ -80,7 +78,7 @@ By default, the log will be rolled over to a backup file when its size reaches 1
 
 Alternatively, you can specify the max size of the log file before it gets rotated, and the number of backup files you want to create, with the StartEx function.
 
-```
+```go
 package main
 
 import "github.com/TranDuyThanh/mlog"
@@ -103,7 +101,7 @@ mlog.DefaultFlags = log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile
 
 ## Output
 
-```
+```bash
 I: 2015/05/15 07:09:45 main.go:10: Hello World !
 W: 2015/05/15 07:09:45 main.go:13: Lorem ipsum
 ```
