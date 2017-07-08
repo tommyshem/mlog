@@ -133,23 +133,25 @@ func (h *rotatingFileHandler) doRollover() {
 		if err != nil {
 			log.Fatal("mlog: unable to close rotatingFileHandler: ", err)
 		}
-
+		// loop over backup files and rename files
 		for i := h.backupCount - 1; i > 0; i-- {
-			sfn := fmt.Sprintf("%s.%d", h.fileName, i)
-			dfn := fmt.Sprintf("%s.%d", h.fileName, i+1)
-
-			err = os.Rename(sfn, dfn)
-			if err != nil {
-				log.Fatal("mlog: unable to Rename files: ", err)
+			oldFileName := fmt.Sprintf("%s.%d", h.fileName, i)
+			newFileName := fmt.Sprintf("%s.%d", h.fileName, i+1)
+			// check file exists before renaming
+			if _, err := os.Stat(oldFileName); err == nil {
+				err = os.Rename(oldFileName, newFileName)
+				if err != nil {
+					log.Fatal("mlog: unable to Rename files: ", err)
+				}
 			}
-		}
 
-		dfn := fmt.Sprintf("%s.1", h.fileName)
-		err = os.Rename(h.fileName, dfn)
+		}
+		// rename
+		err = os.Rename(h.fileName, fmt.Sprintf("%s.1", h.fileName))
 		if err != nil {
 			log.Fatal("mlog: unable to rename file: ", err)
 		}
-
+		// open new log
 		h.fd, err = os.OpenFile(h.fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			log.Fatal("mlog: unable to Open file: ", err)
