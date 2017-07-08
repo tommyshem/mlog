@@ -79,7 +79,7 @@ func newRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*ro
 		// check if already exists and if so clear err
 		result := os.IsExist(err)
 		if !result {
-			log.Fatal("ERROR:", err)
+			log.Fatal("mlog: unable to create directory: ", err)
 			err = nil
 		}
 	}
