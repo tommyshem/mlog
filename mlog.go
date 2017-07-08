@@ -68,9 +68,10 @@ type rotatingFileHandler struct {
 	backupCount int
 }
 
-// newRotatingFileHandler creates directorys if needed and creates a log file if needed
-// else opens the logfile if there is one already.
+// newRotatingFileHandler creates directory's if needed and creates a log file if needed
+// else opens the logfile if there is one already created.
 func newRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*rotatingFileHandler, error) {
+
 	dir := path.Dir(fileName)
 	os.Mkdir(dir, 0777)
 
