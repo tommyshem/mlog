@@ -73,7 +73,7 @@ func TestStartEx(t *testing.T) {
 
 	Info("Test 1")
 	Info("Test 2")
-
+	// does not exist
 	if _, err := os.Stat(fileName + ".1"); err != nil {
 		t.Fatal(err)
 	}
