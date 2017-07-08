@@ -19,13 +19,13 @@ const (
 	// LevelTrace logs everything.
 	LevelTrace LogLevel = (1 << iota)
 
-	// LevelInfo logs Info, Warnings and Errors.
+	// LevelInfo logs Info, Warnings, Errors and Fatal. (All levels)
 	LevelInfo
 
-	// LevelWarn logs Warning and Errors.
+	// LevelWarn logs Warning, Errors and Fatal.
 	LevelWarn
 
-	// LevelError logs just Errors.
+	// LevelError logs just Errors and Fatal.
 	LevelError
 
 	// LevelOnlyFile logs only to file.
@@ -73,8 +73,16 @@ type rotatingFileHandler struct {
 func newRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*rotatingFileHandler, error) {
 
 	dir := path.Dir(fileName)
-	os.Mkdir(dir, 0777)
 
+	err := os.Mkdir(dir, 0777)
+	if err != nil {
+		// check if already exists and if so clear err
+		result := os.IsExist(err)
+		if !result {
+			log.Fatal("ERROR:", err)
+			err = nil
+		}
+	}
 	h := new(rotatingFileHandler)
 
 	if maxBytes <= 0 {
@@ -85,7 +93,6 @@ func newRotatingFileHandler(fileName string, maxBytes int, backupCount int) (*ro
 	h.maxBytes = maxBytes
 	h.backupCount = backupCount
 
-	var err error
 	h.fd, err = os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
@@ -122,19 +129,31 @@ func (h *rotatingFileHandler) doRollover() {
 	}
 
 	if h.backupCount > 0 {
-		h.fd.Close()
+		err = h.fd.Close()
+		if err != nil {
+			log.Fatal("mlog: unable to close rotatingFileHandler: ", err)
+		}
 
 		for i := h.backupCount - 1; i > 0; i-- {
 			sfn := fmt.Sprintf("%s.%d", h.fileName, i)
 			dfn := fmt.Sprintf("%s.%d", h.fileName, i+1)
 
-			os.Rename(sfn, dfn)
+			err = os.Rename(sfn, dfn)
+			if err != nil {
+				log.Fatal("mlog: unable to Rename files: ", err)
+			}
 		}
 
 		dfn := fmt.Sprintf("%s.1", h.fileName)
-		os.Rename(h.fileName, dfn)
+		err = os.Rename(h.fileName, dfn)
+		if err != nil {
+			log.Fatal("mlog: unable to rename file: ", err)
+		}
 
-		h.fd, _ = os.OpenFile(h.fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		h.fd, err = os.OpenFile(h.fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatal("mlog: unable to Open file: ", err)
+		}
 	}
 }
 
@@ -157,26 +176,44 @@ func Stop() error {
 	return nil
 }
 
-func Append(filename string, format string, a ...interface{}) {
-	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+// Append creates a file if there is not one already created.
+// Appends a string to that file.
+// return true if successful
+func Append(filename string, format string, a ...interface{}) error {
+
+	logInstance, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
 	defer logInstance.Close()
-	_, err := logInstance.WriteString(fmt.Sprintf(format, a...))
-	check(err)
+	_, err1 := logInstance.WriteString(fmt.Sprintf(format, a...))
+
+	return err1
 }
 
-func Appendln(filename string, format string, a ...interface{}) {
-	logInstance, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+// Appendln creates a file if there is not one already created.
+// Appends a string with newline on the end to that file.
+// return true if successful
+func Appendln(filename string, format string, a ...interface{}) error {
+	logInstance, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
 	defer logInstance.Close()
-	_, err := logInstance.WriteString(fmt.Sprintf(format+"\n", a...))
-	check(err)
+	_, err1 := logInstance.WriteString(fmt.Sprintf(format+"\n", a...))
+
+	return err1
 }
 
-//Sync commits the current contents of the file to stable storage.
-//Typically, this means flushing the file system's in-memory copy
-//of recently written data to disk.
+// Sync commits the current contents of the file to stable storage.
+// Typically, this means flushing the file system's in-memory copy
+// of recently written data to disk.
 func Sync() {
 	if Logger.LogFile != nil {
-		Logger.LogFile.fd.Sync()
+		err := Logger.LogFile.fd.Sync()
+		if err != nil {
+			log.Fatal("mlog: unable to Sync: ", err)
+		}
 	}
 }
 
@@ -185,7 +222,6 @@ func doLogging(logLevel LogLevel, fileName string, maxBytes, backupCount int) {
 	infoHandle := ioutil.Discard
 	warnHandle := ioutil.Discard
 	errorHandle := ioutil.Discard
-	fatalHandle := ioutil.Discard
 
 	var fileHandle *rotatingFileHandler
 
@@ -203,7 +239,7 @@ func doLogging(logLevel LogLevel, fileName string, maxBytes, backupCount int) {
 		fallthrough
 	case LevelError:
 		errorHandle = os.Stderr
-		fatalHandle = os.Stderr
+
 	}
 
 	if fileName != "" {
@@ -229,9 +265,6 @@ func doLogging(logLevel LogLevel, fileName string, maxBytes, backupCount int) {
 			errorHandle = io.MultiWriter(fileHandle, errorHandle)
 		}
 
-		if fatalHandle == os.Stderr {
-			fatalHandle = io.MultiWriter(fileHandle, fatalHandle)
-		}
 	}
 
 	Logger = mlog{
@@ -250,57 +283,84 @@ func doLogging(logLevel LogLevel, fileName string, maxBytes, backupCount int) {
 
 // Trace writes to the Trace destination
 func Trace(format string, a ...interface{}) {
-	Logger.Trace.Output(2, "\033[34m"+fmt.Sprintf(format, a...)+"\033[0m")
+	err := Logger.Trace.Output(2, "\033[34m"+fmt.Sprintf(format, a...)+"\033[0m")
+	if err != nil {
+		log.Fatal("mlog: unable to log Trace: ", err)
+	}
 }
 
 //** INFO
 
 // Info writes to the Info destination
 func Info(format string, a ...interface{}) {
-	Logger.Info.Output(2, "\033[32m"+fmt.Sprintf(format, a...)+"\033[0m")
+	err := Logger.Info.Output(2, "\033[32m"+fmt.Sprintf(format, a...)+"\033[0m")
+	if err != nil {
+		log.Fatal("mlog: unable to log Info: ", err)
+	}
 }
 
 //** WARNING
 
 // Warning writes to the Warning destination
 func Warning(format string, a ...interface{}) {
-	Logger.Warning.Output(2, "\033[35m"+fmt.Sprintf(format, a...)+"\033[0m")
+	err := Logger.Warning.Output(2, "\033[35m"+fmt.Sprintf(format, a...)+"\033[0m")
+	if err != nil {
+		log.Fatal("mlog: unable to log Warning: ", err)
+	}
 }
 
 //** ERROR
 
 // Error writes to the Error destination and accepts an err
 func Error(err error) {
-	Logger.Error.Output(2, "\033[33m"+fmt.Sprintf("%s\n", err)+"\033[0m")
+	if err != nil {
+		err1 := Logger.Error.Output(2, "\033[33m"+fmt.Sprintf("%s\n", err)+"\033[0m")
+		if err1 != nil {
+			log.Fatal("mlog: unable to log Error: ", err)
+		}
+	}
 }
 
 // IfError is a shortcut function for log.Error if error
 func IfError(err error) {
 	if err != nil {
-		Logger.Error.Output(2, fmt.Sprintf("%s\n", err))
+		err1 := Logger.Error.Output(2, "\033[33m"+fmt.Sprintf("%s\n", err)+"\033[0m")
+		if err1 != nil {
+			log.Fatal("mlog: unable to log IfError: ", err)
+		}
 	}
 }
 
 //** Fatal
 
-// Fatalf writes to the Fatal destination and exits with an error code 255
-func Fatalf(format string, a ...interface{}) {
-	Logger.Fatal.Output(2, "\033[31m"+fmt.Sprintf(format, a...)+"\033[0m")
+// Fatal writes to the Fatal destination and exits with an error 255 code
+func Fatal(a ...interface{}) {
+	err := Logger.Fatal.Output(2, "\033[31m"+fmt.Sprint(a...)+"\033[0m")
+	if err != nil {
+		log.Fatal("mlog: unable to log Fatal: ", err)
+	}
 	Sync()
 	os.Exit(255)
 }
 
-func check(err error) {
+// Fatalf writes to the Fatal destination and exits with an error code 255
+func Fatalf(format string, a ...interface{}) {
+	err := Logger.Fatal.Output(2, "\033[31m"+fmt.Sprintf(format, a...)+"\033[0m")
 	if err != nil {
-		log.Fatal("mlog: cannot append string to file: ", err)
+		log.Fatal("mlog: unable to log Fatalf: ", err)
 	}
+	Sync()
+	os.Exit(255)
 }
 
-// FatalIfError is a shortcut function for log.Fatalf if error and
+// FatalIfError is a shortcut function for log.Fatal if error and
 // exits with an error 255 code
 func FatalIfError(err error) {
 	if err != nil {
-		Logger.Fatal.Output(2, fmt.Sprintf("%s\n", err))
+		err1 := Logger.Fatal.Output(2, fmt.Sprintf("%s\n", err))
+		if err1 != nil {
+			log.Fatal("mlog: unable to log FatalIfError: ", err)
+		}
 		Sync()
 		os.Exit(255)
 	}
