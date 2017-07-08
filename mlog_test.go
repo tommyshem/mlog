@@ -16,7 +16,7 @@ func TestTrace(t *testing.T) {
 	err := errors.New("error log")
 	Error(err)
 
-	// Fatalf("fatalf log")
+	// Fatalf("fatalf log")			// uncomment to test Fatalf log
 	Stop()
 }
 
@@ -30,7 +30,7 @@ func TestInfo(t *testing.T) {
 	err := errors.New("error log")
 	Error(err)
 
-	// Fatalf("fatalf log")
+	// Fatalf("fatalf log")			// uncomment to test Fatalf log
 	Stop()
 }
 
@@ -44,7 +44,7 @@ func TestWarning(t *testing.T) {
 	err := errors.New("error log")
 	Error(err)
 
-	// Fatalf("fatalf log")
+	// Fatalf("fatalf log")			// uncomment to test Fatalf log
 	Stop()
 }
 
@@ -58,14 +58,15 @@ func TestError(t *testing.T) {
 	err := errors.New("error log")
 	Error(err)
 
-	// Fatalf("fatalf log")
+	// Fatalf("fatalf log")			// uncomment to test Fatalf log
 	Stop()
 }
 
 func TestStartEx(t *testing.T) {
+	// setup test path and clear test folder
 	path := "./test"
 	os.RemoveAll(path)
-
+	// start testing
 	os.Mkdir(path, 0777)
 	fileName := path + "/startex"
 
@@ -73,29 +74,29 @@ func TestStartEx(t *testing.T) {
 
 	Info("Test 1")
 	Info("Test 2")
-	// does not exist
+	// test file does exist
 	if _, err := os.Stat(fileName + ".1"); err != nil {
 		t.Fatal(err)
 	}
-
+	// test file does not exist
 	if _, err := os.Stat(fileName + ".2"); err == nil {
 		t.Fatal(err)
 	}
 
 	Info("Test 3")
-
+	// test file does exist
 	if _, err := os.Stat(fileName + ".2"); err != nil {
 		t.Fatal(err)
 	}
 
 	Info("Test 4")
-
+	// test file does not exist
 	if _, err := os.Stat(fileName + ".3"); err == nil {
 		t.Fatal(err)
 	}
-
+	// stop logging
 	Stop()
-
+	// clear test folder
 	os.RemoveAll(path)
 }
 
