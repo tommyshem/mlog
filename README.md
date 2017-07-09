@@ -1,6 +1,7 @@
 # This is a fork from https://github.com/TranDuyThanh/mlog and changed to my needs.
 
-A simple logging module for go, with a rotating file feature and optional console logging.
+A simple logging module for go, with a rotating file feature and optional 
+console logging built with standard go library's.
 
 ## Installation
 	
@@ -102,6 +103,8 @@ mlog.DefaultFlags = log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile
 ## Output
 
 ```bash
-I: 2015/05/15 07:09:45 main.go:10: Hello World !
-W: 2015/05/15 07:09:45 main.go:13: Lorem ipsum
+T: 2017/07/08 16:56:50 mlog_test.go:12: trace log
+I: 2017/07/08 16:56:50 mlog_test.go:13: info log
+W: 2017/07/08 16:56:50 mlog_test.go:14: warning log
+E: 2017/07/08 16:56:50 mlog_test.go:17: error log
 ```
