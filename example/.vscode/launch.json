@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${fileDirname}",
+            "env": {"GOPATH":"/home/tom/go",
+            "PATH":"/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/tom/.cargo/bin:/usr/local/go1.8.1/go/bin:/home/tom/go/bin",
+            "GOROOT":"/usr/local/go1.8.1/go"
+            },
+            "args": [],
+            "showLog": true
+        }
+    ]
+}
