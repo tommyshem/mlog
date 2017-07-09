@@ -1,5 +1,6 @@
 // Package mlog is simple logging module for go, with a rotating file feature
 // and console logging.
+// Built with standard go library's.
 package mlog
 
 import (
@@ -180,7 +181,7 @@ func Stop() error {
 
 // Append creates a file if there is not one already created.
 // Appends a string to that file.
-// return true if successful
+// return nil if successful
 func Append(filename string, format string, a ...interface{}) error {
 
 	logInstance, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -195,7 +196,7 @@ func Append(filename string, format string, a ...interface{}) error {
 
 // Appendln creates a file if there is not one already created.
 // Appends a string with newline on the end to that file.
-// return true if successful
+// return nil if successful
 func Appendln(filename string, format string, a ...interface{}) error {
 	logInstance, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
