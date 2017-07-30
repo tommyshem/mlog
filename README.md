@@ -39,7 +39,7 @@ Note:
 Write to stdout/stderr and create a rotating logfile
 
 
-```
+```go
 package main
 
 import (
@@ -59,7 +59,7 @@ func main() {
 
 Write to stdout/stderr only
 
-```
+```go
 package main
 
 import (
@@ -80,7 +80,7 @@ By default, the log will be rolled over to a backup file when its size reaches 1
 
 Alternatively, you can specify the max size of the log file before it gets rotated, and the number of backup files you want to create, with the StartEx function.
 
-```
+```go
 package main
 
 import "github.com/TranDuyThanh/mlog"
